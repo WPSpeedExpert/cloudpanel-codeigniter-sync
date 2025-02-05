@@ -34,21 +34,21 @@
 # ==============================================================================
 
 # 1.1: Source Environment (Production)
-source_domainName=""                        # Domain name for the source environment
-source_siteUser=""                         # User associated with the source environment
+source_domainName=""         # Domain name for the source environment
+source_siteUser=""           # User associated with the source environment
 source_databaseName="${source_siteUser}"   # Database name for the source environment
-source_databaseUserName="${source_siteUser}" # Database user name for the source environment
-source_websitePath="/home/${source_siteUser}/htdocs/${source_domainName}" # Path to source website files
-source_scriptPath="/home/${source_siteUser}" # Path to source scripts and configuration files
+source_databaseUserName="${source_siteUser}"  # Database user name for the source environment
+source_websitePath="/home/${source_siteUser}/htdocs/${source_domainName}"  # Path to source website files
+source_scriptPath="/home/${source_siteUser}"  # Path to source scripts and configuration files
 
 # 1.2: Destination Environment
-destination_domainName=""                   # Domain name for the destination environment
-destination_siteUser=""                    # User associated with the destination environment
+destination_domainName=""         # Domain name for the destination environment
+destination_siteUser=""           # User associated with the destination environment
 destination_databaseName="${destination_siteUser}"  # Database name for the destination environment
-destination_databaseUserName="${destination_siteUser}" # Database user name for the destination environment
+destination_databaseUserName="${destination_siteUser}"  # Database user name for the destination environment
 destination_databaseUserPassword=""         # Database user password for the destination environment (needed if recreate_database=true)
 destination_websitePath="/home/${destination_siteUser}/htdocs/${destination_domainName}" # Path to destination website files
-destination_scriptPath="/home/${destination_siteUser}" # Path to destination scripts and configuration files
+destination_scriptPath="/home/${destination_siteUser}"  # Path to destination scripts and configuration files
 
 # 1.3: Remote Server Settings
 remote_server_ssh="root@0.0.0.0"          # Remote server SSH connection string
