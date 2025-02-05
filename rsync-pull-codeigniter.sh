@@ -78,7 +78,7 @@ fi
 
 # Check SSH Connection
 echo "[+] Checking SSH connection to remote server: ${remote_server_ssh}" 2>&1 | tee -a ${LogFile}
-if ssh -p ${remote_server_port} -o BatchMode=yes -o ConnectTimeout=5 ${remote_server_ssh} 'true' 2>&1 | tee -a ${LogFile}; then
+if ssh -p ${remote_server_port} -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=5 ${remote_server_ssh} 'true' 2>&1 | tee -a ${LogFile}; then
     echo "[+] SSH connection to remote server established." 2>&1 | tee -a ${LogFile}
 else
     echo "[+] ERROR: SSH connection to remote server failed. Aborting!" 2>&1 | tee -a ${LogFile}
@@ -91,16 +91,19 @@ fi
 
 # Export the source database
 echo "[+] Exporting the source database: ${source_databaseName}" 2>&1 | tee -a ${LogFile}
-ssh -p ${remote_server_port} ${remote_server_ssh} "clpctl db:export --databaseName=${source_databaseName} --file=${source_scriptPath}/tmp/${source_databaseName}.sql.gz" 2>&1 | tee -a ${LogFile}
+ssh -p ${remote_server_port} -o StrictHostKeyChecking=no ${remote_server_ssh} \
+    "clpctl db:export --databaseName=${source_databaseName} --file=${source_scriptPath}/tmp/${source_databaseName}.sql.gz" \
+    2>&1 | tee -a ${LogFile}
 
 # Sync the database file
 echo "[+] Syncing the database file" 2>&1 | tee -a ${LogFile}
-rsync -azP -e "ssh -p ${remote_server_port}" \
+rsync -azP -e "ssh -p ${remote_server_port} -o StrictHostKeyChecking=no" \
     ${remote_server_ssh}:${source_scriptPath}/tmp/${source_databaseName}.sql.gz \
     ${destination_scriptPath}/tmp/ 2>&1 | tee -a ${LogFile}
 
 # Clean up remote export
-ssh -p ${remote_server_port} ${remote_server_ssh} "rm ${source_scriptPath}/tmp/${source_databaseName}.sql.gz" 2>&1 | tee -a ${LogFile}
+ssh -p ${remote_server_port} -o StrictHostKeyChecking=no ${remote_server_ssh} \
+    "rm ${source_scriptPath}/tmp/${source_databaseName}.sql.gz" 2>&1 | tee -a ${LogFile}
 
 # Backup destination database if enabled
 if [ "$backup_destination_database" = true ]; then
@@ -129,12 +132,13 @@ else
                   --databaseName=${destination_databaseName} \
                   --databaseUserName=${destination_databaseUserName} \
                   --databaseUserPassword="${destination_databaseUserPassword}" 2>&1 | tee -a ${LogFile}
-    done
-fi
+fi  # <-- Removed the erroneous "done" here
 
 # Import the database
 echo "[+] Importing database to destination" 2>&1 | tee -a ${LogFile}
-clpctl db:import --databaseName=${destination_databaseName} --file=${destination_scriptPath}/tmp/${source_databaseName}.sql.gz 2>&1 | tee -a ${LogFile}
+clpctl db:import --databaseName=${destination_databaseName} \
+                 --file=${destination_scriptPath}/tmp/${source_databaseName}.sql.gz \
+                 2>&1 | tee -a ${LogFile}
 
 # Clean up the imported database file
 rm ${destination_scriptPath}/tmp/${source_databaseName}.sql.gz 2>&1 | tee -a ${LogFile}
@@ -146,13 +150,14 @@ rm ${destination_scriptPath}/tmp/${source_databaseName}.sql.gz 2>&1 | tee -a ${L
 # Rsync the files
 echo "[+] Starting Rsync pull from source to destination..." 2>&1 | tee -a ${LogFile}
 
-rsync -azP -e "ssh -p ${remote_server_port}" \
+rsync -azP -e "ssh -p ${remote_server_port} -o StrictHostKeyChecking=no" \
     --exclude 'application/cache/' \
     --exclude 'application/logs/' \
     --exclude 'application/config/database.php' \
     --exclude 'application/config/config.php' \
     --exclude '.env' \
-    ${remote_server_ssh}:${source_websitePath}/ ${destination_websitePath}/ 2>&1 | tee -a ${LogFile}
+    ${remote_server_ssh}:${source_websitePath}/ \
+    ${destination_websitePath}/ 2>&1 | tee -a ${LogFile}
 
 if [ $? -ne 0 ]; then
     echo "[+] ERROR: Rsync failed. Aborting!" 2>&1 | tee -a ${LogFile}
